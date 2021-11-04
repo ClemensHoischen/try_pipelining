@@ -26,15 +26,11 @@ class ScienceAlert(BaseModel):
     alert_time: datetime
 
 
-class Darkness(BaseModel):
-    max_sun_altitude_deg: float = Field(-18.0, le=0)
-    max_moon_altitude_deg: float = Field(-0.5, le=90)
-
-
 class ObservationWindowOptions(BaseModel):
     max_zenith_deg: float = Field(..., ge=0, le=90)
     search_range_hours: float = Field(..., ge=0)
-    sky_brightness: Darkness = Field(Darkness())
+    max_sun_altitude_deg: float = Field(-18.0, le=0)
+    max_moon_altitude_deg: float = Field(-0.5, le=90)
     precision_minutes: float = Field(..., ge=0)
     min_delay_minutes: float = Field(..., ge=0)
     max_delay_minutes: float = Field(..., ge=0)

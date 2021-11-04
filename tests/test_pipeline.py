@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytz
 
-from try_pipelining.data_models import ScienceAlert, Darkness, CTANorth
+from try_pipelining.data_models import ScienceAlert, CTANorth
 from typing import List, Union
 from pydantic import BaseModel
 from rich import print
@@ -13,7 +13,8 @@ from try_pipelining import pipelines
 OPTIONS_DATA = {
     "max_zenith_deg": 60,
     "search_range_hours": 48,
-    "sky_brightness": Darkness(),
+    "max_sun_altitude_deg": -18.0,
+    "max_moon_altitude_deg": -0.5,
     "precision_minutes": 1,
     "min_delay_minutes": 0,
     "max_delay_minutes": 24 * 60,

@@ -102,8 +102,8 @@ def apply_criteria_to_night(science_alert, options, site, night_test_dates):
     source_alts = source_alt_az.alt / u.deg
     moon_alts = moon_alt_az.alt / u.deg
 
-    max_moon_alt = options.sky_brightness.max_moon_altitude_deg
-    max_sun_alt = options.sky_brightness.max_sun_altitude_deg
+    max_moon_alt = options.max_moon_altitude_deg
+    max_sun_alt = options.max_sun_altitude_deg
     source_alt_limit = 90.0 - options.max_zenith_deg
 
     sun_mask = sun_alts < max_sun_alt
