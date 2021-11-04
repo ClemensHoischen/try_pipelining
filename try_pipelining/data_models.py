@@ -15,6 +15,10 @@ class CTANorth:
         self.location = EarthLocation(lat=self.lat, lon=self.lon, height=self.height)
         self.name = "CTA North"
 
+class Task(BaseModel):
+    task_name: str
+    task_options: dict
+
 
 class Coords(BaseModel):
     raInDeg: float = Field(..., ge=0, lt=360)

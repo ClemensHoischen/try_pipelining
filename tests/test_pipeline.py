@@ -1,9 +1,8 @@
 from datetime import datetime
 import pytz
 
-from try_pipelining.data_models import ScienceAlert, CTANorth
+from try_pipelining.data_models import ScienceAlert, CTANorth, Task
 from typing import List, Union
-from pydantic import BaseModel
 from rich import print
 
 from try_pipelining import data_models
@@ -20,11 +19,6 @@ OPTIONS_DATA = {
     "max_delay_minutes": 24 * 60,
     "min_duration_minutes": 10,
 }
-
-
-class Task(BaseModel):
-    task_name: str
-    task_options: dict
 
 
 ALERT = {
