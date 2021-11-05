@@ -3,7 +3,7 @@ observation window calculation module
 currently mostly being used by the CalculateObservability Task in tasks.py
 """
 
-from datetime import date, timezone
+from datetime import date, timezone, datetime
 
 import ephem
 import numpy as np
@@ -13,8 +13,15 @@ from astropy.time import Time
 from matplotlib.dates import date2num, num2date
 
 from typing import List
+from pydantic import BaseModel
 
-from try_pipelining.data_models import Night, ObservationWindow
+from try_pipelining.data_models import ObservationWindow
+
+
+class Night(BaseModel):
+    evening_date: date
+    sun_set: datetime
+    sun_rise: datetime
 
 
 def setup_nights(alert, options, site) -> List[Night]:
