@@ -5,6 +5,8 @@ from typing import List, Any
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 
+from try_pipelining.observation_windows import ObservationWindow
+
 
 # ---------- General structs --------------------------
 
@@ -60,6 +62,13 @@ class ParameterOptions(BaseModel):
     pass
 
 
+options_map = {
+    "ObservationWindowPipeline": ObservationWindowOptions,
+    "FactorialsPipeline": FactorialsOptions,
+    "ParameterPipeline": ParameterOptions,
+}
+
+
 # --------------- Filter Option structs ----------
 
 
@@ -78,18 +87,18 @@ class ParameterFilterOptions(BaseModel):
     parameter_comparison: str
 
 
+filter_option_map = {
+    "ObservationWindowPipeline": ObservationWindowFilterOptions,
+    "FactorialsPipeline": FactorialsFilterOptions,
+    "ParameterPipeline": ParameterFilterOptions,
+}
+
+
 # -------------- Output structs -----------------
 
 
 class FactorialsTaskResult(BaseModel):
     factorial_result: float
-
-
-class ObservationWindow(BaseModel):
-    start_time: datetime
-    end_time: datetime
-    delay_hours: float
-    duration_hours: float
 
 
 class ObservationWindowTaskResult(BaseModel):
@@ -99,18 +108,3 @@ class ObservationWindowTaskResult(BaseModel):
 class ParameterResult(BaseModel):
     parameter_name: str
     parameter_ok: bool
-
-
-# ------------- Option Mapping ----------------------
-
-options_map = {
-    "ObservationWindowPipeline": ObservationWindowOptions,
-    "FactorialsPipeline": FactorialsOptions,
-    "ParameterPipeline": ParameterOptions,
-}
-
-filter_option_map = {
-    "ObservationWindowPipeline": ObservationWindowFilterOptions,
-    "FactorialsPipeline": FactorialsFilterOptions,
-    "ParameterPipeline": ParameterFilterOptions,
-}

@@ -15,8 +15,12 @@ from matplotlib.dates import date2num, num2date
 from typing import List
 from pydantic import BaseModel
 
-from try_pipelining.data_models import ObservationWindow
 
+class ObservationWindow(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    delay_hours: float
+    duration_hours: float
 
 class Night(BaseModel):
     evening_date: date
