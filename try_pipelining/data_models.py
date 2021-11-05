@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Any
 
 from astropy.coordinates import EarthLocation
 import astropy.units as u
@@ -22,6 +22,7 @@ class CTANorth:
 
 class Task(BaseModel):
     task_name: str
+    pipeline_name: str
     task_options: dict
     filter_options: dict
 
@@ -34,6 +35,7 @@ class Coords(BaseModel):
 class ScienceAlert(BaseModel):
     coords: Coords
     alert_time: datetime
+    measured_parameters: dict
 
 
 # ---------------- Option Structs ---------------
@@ -54,6 +56,10 @@ class FactorialsOptions(BaseModel):
     fact_n: int
 
 
+class ParameterOptions(BaseModel):
+    pass
+
+
 # --------------- Filter Option structs ----------
 
 
@@ -64,6 +70,12 @@ class FactorialsFilterOptions(BaseModel):
 class ObservationWindowFilterOptions(BaseModel):
     min_window_duration_hours: float = Field(..., ge=0)
     max_window_delay_hours: float = Field(..., ge=0)
+
+
+class ParameterFilterOptions(BaseModel):
+    parameter_name: str
+    parameter_requirement: Any
+    parameter_comparison: str
 
 
 # -------------- Output structs -----------------
@@ -84,14 +96,21 @@ class ObservationWindowTaskResult(BaseModel):
     windows: List[ObservationWindow]
 
 
+class ParameterResult(BaseModel):
+    parameter_name: str
+    parameter_ok: bool
+
+
 # ------------- Option Mapping ----------------------
 
 options_map = {
     "ObservationWindowPipeline": ObservationWindowOptions,
     "FactorialsPipeline": FactorialsOptions,
+    "ParameterPipeline": ParameterOptions,
 }
 
 filter_option_map = {
     "ObservationWindowPipeline": ObservationWindowFilterOptions,
     "FactorialsPipeline": FactorialsFilterOptions,
+    "ParameterPipeline": ParameterFilterOptions,
 }

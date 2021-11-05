@@ -1,4 +1,5 @@
 from try_pipelining.factorials import factorial
+from try_pipelining import parameter
 from typing import List
 
 from try_pipelining.observation_windows import (
@@ -11,6 +12,8 @@ from try_pipelining.data_models import (
     ObservationWindowTaskResult,
     FactorialsTaskResult,
     ObservationWindowFilterOptions,
+    ParameterFilterOptions,
+    ParameterResult,
 )
 
 
@@ -71,7 +74,22 @@ class ObservationWindowPipeline(Pipeline):
         return filtered_window_results
 
 
+class ParameterPipeline(Pipeline):
+    def run(self):
+        return None
+
+    def filter(
+        self, result: None, filter_options: ParameterFilterOptions
+    ) -> ParameterResult:
+        pars: dict = self.science_alert.measured_parameters
+        return ParameterResult(
+            parameter_name=filter_options.parameter_name,
+            parameter_ok=parameter.execute_parameter_filtering(pars, filter_options),
+        )
+
+
 pipeline_map = {
     "FactorialsPipeline": FactorialPipeline,
     "ObservationWindowPipeline": ObservationWindowPipeline,
+    "ParameterPipeline": ParameterPipeline,
 }
