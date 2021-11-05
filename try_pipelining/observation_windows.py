@@ -195,7 +195,7 @@ def select_observation_window(
         raise KeyError(
             f"{selection} is not a valid selection method for ObservationWindows."
         )
-    
+
     return selection_map[selection](observation_windows)
 
 
