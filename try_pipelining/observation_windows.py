@@ -13,7 +13,6 @@ from astropy.coordinates import AltAz, Angle, SkyCoord, get_sun
 from astropy.time import Time
 from matplotlib.dates import date2num, num2date
 from pydantic import BaseModel
-from pydantic.errors import ConfigError
 
 
 class ObservationWindow(BaseModel):
@@ -75,17 +74,7 @@ def setup_night_timerange(night, options):
     return date_range
 
 
-def apply_criteria_to_night(science_alert, options, site, night_test_dates):
-    position = SkyCoord(
-        science_alert.coords.raInDeg, science_alert.coords.decInDeg, unit="deg"
-    )
-
-    night_times = Time(night_test_dates)
-
-    altaz_frame = AltAz(obstime=night_times, location=site.location)
-    sun_alt_azs = get_sun(night_times).transform_to(altaz_frame)
-    source_alt_az = position.transform_to(altaz_frame)
-
+def calculate_moon_pars(night_test_dates, night_times, site):
     moon = ephem.Moon()
     obs = ephem.Observer()
     obs.lon = str(site.lon / u.deg)
@@ -110,9 +99,28 @@ def apply_criteria_to_night(science_alert, options, site, night_test_dates):
         obstime=night_times,
     )
 
+    moon_alts = moon_alt_az.alt / u.deg
+
+    return moon_alts, moon_azs, moon_phase
+
+
+def apply_criteria_to_night(science_alert, options, site, night_test_dates):
+    position = SkyCoord(
+        science_alert.coords.raInDeg, science_alert.coords.decInDeg, unit="deg"
+    )
+
+    night_times = Time(night_test_dates)
+
+    altaz_frame = AltAz(obstime=night_times, location=site.location)
+    sun_alt_azs = get_sun(night_times).transform_to(altaz_frame)
+    source_alt_az = position.transform_to(altaz_frame)
+
     sun_alts = sun_alt_azs.alt / u.deg
     source_alts = source_alt_az.alt / u.deg
-    moon_alts = moon_alt_az.alt / u.deg
+
+    # other parameters might be used later to calculate the distance between
+    # moon and source and select based on  moon phase
+    moon_alts, _, _ = calculate_moon_pars(night_test_dates, night_times, site)
 
     max_moon_alt = options.max_moon_altitude_deg
     max_sun_alt = options.max_sun_altitude_deg
