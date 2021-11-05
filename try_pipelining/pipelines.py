@@ -1,11 +1,13 @@
 from try_pipelining.factorials import factorial
 from try_pipelining import parameter
-from typing import List
+from typing import Union
 
 from try_pipelining.observation_windows import (
     setup_nights,
     setup_night_timerange,
     calculate_observation_windows,
+    select_observation_window,
+    ObservationWindow,
 )
 from try_pipelining.data_models import (
     FactorialsFilterOptions,
@@ -30,14 +32,12 @@ class FactorialPipeline(Pipeline):
 
     def filter(
         self, result: FactorialsTaskResult, filter_options: FactorialsFilterOptions
-    ) -> List[FactorialsTaskResult]:
+    ) -> Union[FactorialsTaskResult, None]:
         assert isinstance(result, FactorialsTaskResult)
         assert isinstance(filter_options, FactorialsFilterOptions)
 
         if result.factorial_result > filter_options.min_fact_val:
-            return [result]
-
-        return []
+            return result
 
 
 class ObservationWindowPipeline(Pipeline):
@@ -55,11 +55,11 @@ class ObservationWindowPipeline(Pipeline):
         self,
         result: ObservationWindowTaskResult,
         filter_options: ObservationWindowFilterOptions,
-    ) -> List[ObservationWindowTaskResult]:
+    ) -> Union[ObservationWindow, None]:
         assert isinstance(result, ObservationWindowTaskResult)
         assert isinstance(filter_options, ObservationWindowFilterOptions)
 
-        filtered_window_results = []
+        filtered_windows = []
         for window in result.windows:
             delay_ok = window.delay_hours < filter_options.max_window_delay_hours
             duration_ok = (
@@ -67,11 +67,11 @@ class ObservationWindowPipeline(Pipeline):
             )
 
             if delay_ok and duration_ok:
-                filtered_window_results.append(
-                    ObservationWindowTaskResult(windows=[window])
-                )
+                filtered_windows.append(window)
 
-        return filtered_window_results
+        return select_observation_window(
+            filtered_windows, filter_options.window_selection
+        )
 
 
 class ParameterPipeline(Pipeline):

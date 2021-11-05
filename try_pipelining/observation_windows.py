@@ -14,6 +14,7 @@ from matplotlib.dates import date2num, num2date
 
 from typing import List
 from pydantic import BaseModel
+from pydantic.errors import ConfigError
 
 
 class ObservationWindow(BaseModel):
@@ -21,6 +22,7 @@ class ObservationWindow(BaseModel):
     end_time: datetime
     delay_hours: float
     duration_hours: float
+
 
 class Night(BaseModel):
     evening_date: date
@@ -184,3 +186,25 @@ def calculate_observation_windows(
         )
 
     return windows
+
+
+def select_observation_window(
+    observation_windows: List[ObservationWindow], selection: str
+) -> ObservationWindow:
+    if selection not in selection_map.keys():
+        raise KeyError(
+            f"{selection} is not a valid selection method for ObservationWindows."
+        )
+    
+    return selection_map[selection](observation_windows)
+
+
+def select_earliest_window(windows: List[ObservationWindow]) -> ObservationWindow:
+    return min([win for win in windows], key=lambda w: w.delay_hours)
+
+
+def select_longest_window(windows: List[ObservationWindow]) -> ObservationWindow:
+    return max([win for win in windows], key=lambda w: w.duration_hours)
+
+
+selection_map = {"earliest": select_earliest_window, "longest": select_longest_window}

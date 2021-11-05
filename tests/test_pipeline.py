@@ -2,6 +2,7 @@ from datetime import datetime
 import pytz
 
 from try_pipelining.data_models import ScienceAlert, CTANorth, Task
+from try_pipelining.parameter import analyse_parameter_pipe_results
 from typing import List, Union
 
 from rich import print
@@ -31,7 +32,11 @@ OPTIONS_DATA = {
     "min_duration_minutes": 10,
 }
 
-FILTER_DATA = {"min_window_duration_hours": 1.1, "max_window_delay_hours": 1.2}
+FILTER_DATA = {
+    "min_window_duration_hours": 0.1,
+    "max_window_delay_hours": 50,
+    "window_selection": "longest",
+}
 
 
 def run_pipeline(
@@ -59,6 +64,8 @@ def run_pipeline(
             task_result = pipe.run()
             progress.update(progress_tasks[i], advance=1)
             # print("... Task done.")
+
+            print(task_result)
 
             raw_filter_options = task.filter_options
             filter_opts = data_models.filter_option_map[pipe_name](**raw_filter_options)
@@ -89,7 +96,7 @@ def test_pipeline():
             task_name="FactorialsPipeline",
             pipeline_name="FactorialsPipeline",
             task_options={"fact_n": 25},
-            filter_options={"min_fact_val": 1e35},
+            filter_options={"min_fact_val": 1e20},
         ),
         Task(
             task_name="ObservationWindowPipeline",
@@ -113,7 +120,7 @@ def test_pipeline():
             task_options={},
             filter_options={
                 "parameter_name": "system_stable",
-                "parameter_requirement": True,
+                "parameter_requirement": False,
                 "parameter_comparison": "equal",
             },
         ),
@@ -131,28 +138,10 @@ def test_pipeline():
     )
 
     if pars_ok:
-        window = get_earliest_observation_window_from_results(task_results)
+        window = task_results["ObservationWindowPipelineResult"]
         print(
             f"[green]The earliest observation window that fulfills all filtering is:[/green]"
         )
         print(window.dict())
     else:
         print("[red] No valid Observation Window.")
-
-    print("[green]No further actions...")
-
-
-def get_earliest_observation_window_from_results(task_results: dict):
-    windows_list = task_results["ObservationWindowPipelineResult"]
-
-    return min([win.windows[0] for win in windows_list], key=lambda w: w.delay_hours)
-
-
-def analyse_parameter_pipe_results(task_results: dict) -> bool:
-    pipe_results_keys = [tr for tr in task_results if "Parameter" in tr]
-    pars_ok_list = [
-        task_results[pipe_results_key].parameter_ok
-        for pipe_results_key in pipe_results_keys
-    ]
-
-    return all(pars_ok_list)

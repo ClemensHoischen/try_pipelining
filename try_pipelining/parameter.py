@@ -31,3 +31,13 @@ def is_equal(par, req):
 
 
 evaluate_paramter_map = {"greater": is_greater, "equal": is_equal}
+
+
+def analyse_parameter_pipe_results(task_results: dict) -> bool:
+    pipe_results_keys = [tr for tr in task_results if "Parameter" in tr]
+    pars_ok_list = [
+        task_results[pipe_results_key].parameter_ok
+        for pipe_results_key in pipe_results_keys
+    ]
+
+    return all(pars_ok_list)

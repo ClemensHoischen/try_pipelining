@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import List, Any
+from typing import Any, List
 
 from astropy.coordinates import EarthLocation
 import astropy.units as u
@@ -79,6 +79,7 @@ class FactorialsFilterOptions(BaseModel):
 class ObservationWindowFilterOptions(BaseModel):
     min_window_duration_hours: float = Field(..., ge=0)
     max_window_delay_hours: float = Field(..., ge=0)
+    window_selection: str
 
 
 class ParameterFilterOptions(BaseModel):
