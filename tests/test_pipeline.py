@@ -3,10 +3,21 @@ import pytz
 
 from try_pipelining.data_models import ScienceAlert, CTANorth, Task
 from typing import List, Union
+
 from rich import print
+from rich.console import Console
+from rich.progress import Progress
+from rich.panel import Panel
 
 from try_pipelining import data_models
 from try_pipelining import pipelines
+
+console = Console()
+
+
+class MyProgress(Progress):
+    def get_renderables(self):
+        yield Panel(self.make_tasks_table(self.tasks))
 
 
 OPTIONS_DATA = {
@@ -29,30 +40,41 @@ def run_pipeline(
     tasks: List[Task],
 ):
 
-    task_results = {}
-    for task in tasks:
-        task_name = task.task_name
-        task_options = task.task_options
-        pipe_name = task.pipeline_name
+    with MyProgress() as progress:
+        progress_tasks = [
+            progress.add_task(f"[green]Task: {task.task_name}", total=3)
+            for task in tasks
+        ]
 
-        print(f"Processing task: {task.task_name} as pipeline: {pipe_name}")
-        options = data_models.options_map[pipe_name](**task_options)
-        pipe = pipelines.pipeline_map[pipe_name](science_alert, site, options)
-        task_result = pipe.run()
-        print("... Task done.")
+        task_results = {}
+        for i, task in enumerate(tasks):
+            task_name = task.task_name
+            task_options = task.task_options
+            pipe_name = task.pipeline_name
+            progress.update(progress_tasks[i], advance=1)
 
-        raw_filter_options = task.filter_options
-        filter_opts = data_models.filter_option_map[pipe_name](**raw_filter_options)
-        filtered_results = pipe.filter(result=task_result, filter_options=filter_opts)
-        print("... Filtering done.")
+            # print(f"Processing task: {task.task_name} as pipeline: {pipe_name}")
+            options = data_models.options_map[pipe_name](**task_options)
+            pipe = pipelines.pipeline_map[pipe_name](science_alert, site, options)
+            task_result = pipe.run()
+            progress.update(progress_tasks[i], advance=1)
+            # print("... Task done.")
 
-        task_results[task_name + "Result"] = filtered_results
+            raw_filter_options = task.filter_options
+            filter_opts = data_models.filter_option_map[pipe_name](**raw_filter_options)
+            filtered_results = pipe.filter(
+                result=task_result, filter_options=filter_opts
+            )
+            # print("... Filtering done.")
 
-    return task_results
+            task_results[task_name + "Result"] = filtered_results
+            progress.update(progress_tasks[i], advance=1)
+
+        return task_results
 
 
 def test_pipeline():
-
+    print("\n")
     ALERT_DICT = {
         "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
         "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
@@ -67,7 +89,7 @@ def test_pipeline():
             task_name="FactorialsPipeline",
             pipeline_name="FactorialsPipeline",
             task_options={"fact_n": 25},
-            filter_options={"min_fact_val": 1e10},
+            filter_options={"min_fact_val": 1e35},
         ),
         Task(
             task_name="ObservationWindowPipeline",
@@ -96,21 +118,28 @@ def test_pipeline():
             },
         ),
     ]
-
+    console.rule("Processing of Tasks...")
     task_results = run_pipeline(science_alert, site, TASKS)
 
-    print("all the Results:")
+    console.rule("[bold] Results:")
     print(task_results)
-    print("---------------------")
+    console.rule()
 
     pars_ok = analyse_parameter_pipe_results(task_results)
-    print(f"Checking that all analysed Paramters are fulfilled ... {pars_ok}")
+    print(
+        f"[green]Checking that all analysed Paramters are fulfilled ... [/green][bold]{pars_ok}"
+    )
 
     if pars_ok:
-        print("The earliest observation window that fulfills all filtering is:")
-        print("\t", get_earliest_observation_window_from_results(task_results))
+        window = get_earliest_observation_window_from_results(task_results)
+        print(
+            f"[green]The earliest observation window that fulfills all filtering is:[/green]"
+        )
+        print(window.dict())
+    else:
+        print("[red] No valid Observation Window.")
 
-    print("No further actions...")
+    print("[green]No further actions...")
 
 
 def get_earliest_observation_window_from_results(task_results: dict):

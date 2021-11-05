@@ -30,11 +30,4 @@ def is_equal(par, req):
     return False
 
 
-def is_less(par, req):
-    if par < req:
-        return True
-
-    return False
-
-
 evaluate_paramter_map = {"greater": is_greater, "equal": is_equal}
