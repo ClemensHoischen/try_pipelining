@@ -25,7 +25,7 @@ class CTANorth:
 class Task(BaseModel):
     task_name: str
     pipeline_name: str
-    task_options: dict
+    task_options: dict = {}
     filter_options: dict
 
 

@@ -13,30 +13,10 @@ from rich.panel import Panel
 from try_pipelining import data_models
 from try_pipelining import pipelines
 
-console = Console()
-
 
 class MyProgress(Progress):
     def get_renderables(self):
         yield Panel(self.make_tasks_table(self.tasks))
-
-
-OPTIONS_DATA = {
-    "max_zenith_deg": 60,
-    "search_range_hours": 48,
-    "max_sun_altitude_deg": -18.0,
-    "max_moon_altitude_deg": -0.5,
-    "precision_minutes": 1,
-    "min_delay_minutes": 0,
-    "max_delay_minutes": 24 * 60,
-    "min_duration_minutes": 10,
-}
-
-FILTER_DATA = {
-    "min_window_duration_hours": 0.1,
-    "max_window_delay_hours": 50,
-    "window_selection": "longest",
-}
 
 
 def run_pipeline(
@@ -65,8 +45,6 @@ def run_pipeline(
             progress.update(progress_tasks[i], advance=1)
             # print("... Task done.")
 
-            print(task_result)
-
             raw_filter_options = task.filter_options
             filter_opts = data_models.filter_option_map[pipe_name](**raw_filter_options)
             filtered_results = pipe.filter(
@@ -81,17 +59,35 @@ def run_pipeline(
 
 
 def test_pipeline():
+    console = Console()
     print("\n")
-    ALERT_DICT = {
+    alert_dict = {
         "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
         "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
         "measured_parameters": {"count_rate": 1.2e3, "system_stable": True},
     }
 
-    science_alert = ScienceAlert(**ALERT_DICT)
+    science_alert = ScienceAlert(**alert_dict)
     site = CTANorth()
 
-    TASKS = [
+    window_task_options = {
+        "max_zenith_deg": 60,
+        "search_range_hours": 48,
+        "max_sun_altitude_deg": -18.0,
+        "max_moon_altitude_deg": -0.5,
+        "precision_minutes": 1,
+        "min_delay_minutes": 0,
+        "max_delay_minutes": 24 * 60,
+        "min_duration_minutes": 10,
+    }
+
+    window_filter_options = {
+        "min_window_duration_hours": 0.1,
+        "max_window_delay_hours": 50,
+        "window_selection": "longest",
+    }
+
+    tasks = [
         Task(
             task_name="FactorialsPipeline",
             pipeline_name="FactorialsPipeline",
@@ -101,13 +97,12 @@ def test_pipeline():
         Task(
             task_name="ObservationWindowPipeline",
             pipeline_name="ObservationWindowPipeline",
-            task_options=OPTIONS_DATA,
-            filter_options=FILTER_DATA,
+            task_options=window_task_options,
+            filter_options=window_filter_options,
         ),
         Task(
             task_name="ParameterCountRate",
             pipeline_name="ParameterPipeline",
-            task_options={},
             filter_options={
                 "parameter_name": "count_rate",
                 "parameter_requirement": 1e3,
@@ -117,16 +112,15 @@ def test_pipeline():
         Task(
             task_name="ParameterSystemStable",
             pipeline_name="ParameterPipeline",
-            task_options={},
             filter_options={
                 "parameter_name": "system_stable",
-                "parameter_requirement": False,
+                "parameter_requirement": True,
                 "parameter_comparison": "equal",
             },
         ),
     ]
     console.rule("Processing of Tasks...")
-    task_results = run_pipeline(science_alert, site, TASKS)
+    task_results = run_pipeline(science_alert, site, tasks)
 
     console.rule("[bold] Results:")
     print(task_results)
@@ -140,7 +134,7 @@ def test_pipeline():
     if pars_ok:
         window = task_results["ObservationWindowPipelineResult"]
         print(
-            f"[green]The earliest observation window that fulfills all filtering is:[/green]"
+            f"[green]The selected observation window that passed all filtering is:[/green]"
         )
         print(window.dict())
     else:
