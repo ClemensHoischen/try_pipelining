@@ -1,12 +1,12 @@
 from datetime import datetime
+
 import pytz
-
-from try_pipelining.pipelines import run_pipeline
-from try_pipelining.data_models import ScienceAlert, CTANorth, Task
-from try_pipelining.parameter import analyse_parameter_pipe_results
-
 from rich import print
 from rich.console import Console
+
+from try_pipelining.data_models import CTANorth, ScienceAlert, Task
+from try_pipelining.parameter import analyse_parameter_pipe_results
+from try_pipelining.pipelines import run_pipeline
 
 
 def test_pipeline():

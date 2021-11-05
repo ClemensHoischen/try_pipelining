@@ -1,12 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
 from typing import Any, List
 
-from astropy.coordinates import EarthLocation
 import astropy.units as u
+from astropy.coordinates import EarthLocation
+from pydantic import BaseModel, Field
 
 from try_pipelining.observation_windows import ObservationWindow
-
 
 # ---------- General structs --------------------------
 

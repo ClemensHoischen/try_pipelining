@@ -3,7 +3,8 @@ observation window calculation module
 currently mostly being used by the CalculateObservability Task in tasks.py
 """
 
-from datetime import date, timezone, datetime
+from datetime import date, datetime, timezone
+from typing import List
 
 import ephem
 import numpy as np
@@ -11,8 +12,6 @@ from astropy import units as u
 from astropy.coordinates import AltAz, Angle, SkyCoord, get_sun
 from astropy.time import Time
 from matplotlib.dates import date2num, num2date
-
-from typing import List
 from pydantic import BaseModel
 from pydantic.errors import ConfigError
 

@@ -1,25 +1,25 @@
-from try_pipelining.factorials import factorial
-from try_pipelining import parameter, data_models
-from typing import Union, List
+from typing import List, Union
 
-from try_pipelining.observation_windows import (
-    setup_nights,
-    setup_night_timerange,
-    calculate_observation_windows,
-    select_observation_window,
-    ObservationWindow,
-)
+from rich.panel import Panel
+from rich.progress import Progress
+
+from try_pipelining import data_models, parameter
 from try_pipelining.data_models import (
     FactorialsFilterOptions,
-    ObservationWindowTaskResult,
     FactorialsTaskResult,
     ObservationWindowFilterOptions,
+    ObservationWindowTaskResult,
     ParameterFilterOptions,
     ParameterResult,
 )
-
-from rich.progress import Progress
-from rich.panel import Panel
+from try_pipelining.factorials import factorial
+from try_pipelining.observation_windows import (
+    ObservationWindow,
+    calculate_observation_windows,
+    select_observation_window,
+    setup_night_timerange,
+    setup_nights,
+)
 
 
 class MyProgress(Progress):
