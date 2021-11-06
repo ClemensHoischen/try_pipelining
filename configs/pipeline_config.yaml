@@ -3,9 +3,6 @@ pipeline:
   # The Task result from this Task will be
   # returned from the pipeline.
   final_result_from: ObservationWindow
-  # specifies the kind of post-actions that will
-  # follow the pipeline executtion.
-  pipline_type: trigger_wobble_observations
   tasks:
     task_1:
       # A Task that calculates n! and checks
@@ -54,3 +51,24 @@ pipeline:
         parameter_name: system_stable
         parameter_requirement: True
         parameter_comparison: equal
+    task_5:
+      # check that the system_stable
+      # parameter in the alert itself is True.
+      task_name: Noise
+      task_type: ParameterTask
+      filter_options:
+        parameter_name: noise
+        parameter_requirement: 10.5
+        parameter_comparison: less
+  # specifies what will be done with the result
+  # of the pipeline (if there is one).
+  post_action:
+      post_action_name: create_wobble_scheduling_block
+      post_action_options:
+        wobble:
+          offsets: [0.7, 0.7, 0.7, 0.7]
+          angles: [0, 90, 180, 270]
+        proposal:
+          proposal_id: 1
+          proposal_class: A
+          proposal_rank: 15.2

@@ -39,6 +39,28 @@ class ScienceAlert(BaseModel):
     measured_parameters: dict
 
 
+class TimeConstraints(BaseModel):
+    start_time: datetime
+    end_time: datetime
+
+
+class WobbleOptions(BaseModel):
+    offsets: List[float]
+    angles: List[float]
+
+
+class Proposal(BaseModel):
+    proposal_id: int
+    proposal_class: str
+    proposal_rank: float
+
+
+class SchedulingBlock(BaseModel):
+    coords: Coords
+    time_constraints: TimeConstraints
+    wobble_options: WobbleOptions
+
+
 # ---------------- Option Structs ---------------
 
 task_options = {}

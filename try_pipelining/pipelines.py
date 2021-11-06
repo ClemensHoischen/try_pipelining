@@ -1,10 +1,44 @@
-from typing import List
+from typing import List, Any
 
 from rich.panel import Panel
 from rich.progress import Progress
 
 from try_pipelining import data_models
 from try_pipelining.tasks import available_tasks
+from try_pipelining.data_models import SchedulingBlock, ScienceAlert
+
+
+available_post_actions = {}
+
+
+def register_post_action(func):
+    available_post_actions.update({func.__name__: func})
+    return func
+
+
+@register_post_action
+def create_wobble_scheduling_block(science_alert, task_result, options):
+    sb_dict = {
+        "coords": science_alert.coords,
+        "time_constraints": {
+            "start_time": task_result.start_time,
+            "end_time": task_result.end_time,
+        },
+        "wobble_options": options["wobble"],
+        "proposal": options["proposal"],
+    }
+    return SchedulingBlock(**sb_dict)
+
+
+def execute_post_action(
+    science_alert: ScienceAlert,
+    task_result: Any,
+    post_action_name: str,
+    post_action_options: dict,
+):
+    return available_post_actions[post_action_name](
+        science_alert, task_result, post_action_options
+    )
 
 
 class MyProgress(Progress):
@@ -27,6 +61,7 @@ def run_pipeline(
         ]
 
         task_results = {}
+        tasks_passed = []
         for i, task in enumerate(tasks):
             # --- Setup of the Task ---
             task_name = task.task_name
@@ -48,5 +83,7 @@ def run_pipeline(
             # --- Add to the Results Dict ---
             task_results[task_name + "Result"] = filtered_results
             progress.update(progress_tasks[i], advance=1)
+            tasks_passed.append(t.passed)
 
-        return task_results[return_result + "Result"]
+        if False not in tasks_passed:
+            return task_results[return_result + "Result"]

@@ -20,6 +20,10 @@ def execute_parameter_filtering(
     comparison_mode: str = parameter_filtering_options.parameter_comparison
 
     actual_parameter = parameters.get(parameter_to_filter)
+    print(comparison_mode)
+    if comparison_mode == "equal":
+        print(actual_parameter, required_value)
+        print(evaluators[comparison_mode])
 
     return evaluators[comparison_mode](actual_parameter, required_value)
 
@@ -33,18 +37,16 @@ def greater(par, req):
 
 
 @register_evaluator
-def equal(par, req):
-    if par == req:
+def less(par, req):
+    if par < req:
         return True
 
     return False
 
 
-def analyse_parameter_pipe_results(task_results: dict) -> bool:
-    pipe_results_keys = [tr for tr in task_results if "Parameter" in tr]
-    pars_ok_list = [
-        task_results[pipe_results_key].parameter_ok
-        for pipe_results_key in pipe_results_keys
-    ]
+@register_evaluator
+def equal(par, req):
+    if par == req:
+        return True
 
-    return all(pars_ok_list)
+    return False

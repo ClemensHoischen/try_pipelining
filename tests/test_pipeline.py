@@ -1,129 +1,37 @@
 from datetime import datetime
 
 import yaml
-
+import pytest
 import pytz
 from rich import print
 from rich.console import Console
 from yaml.loader import SafeLoader
 
-from try_pipelining.data_models import CTANorth, ScienceAlert, TaskConfig
-from try_pipelining.parameter import analyse_parameter_pipe_results
-from try_pipelining.pipelines import run_pipeline
+from try_pipelining.data_models import (
+    CTANorth,
+    ScienceAlert,
+    TaskConfig,
+    SchedulingBlock,
+)
+from try_pipelining.pipelines import run_pipeline, execute_post_action
 from try_pipelining.observation_windows import ObservationWindow
 
 
-def test_pipeline():
-    console = Console()
-    print("\n")
-
+@pytest.mark.parametrize(
+    "system_stable, count_rate, noise_value, tasks_pass",
+    [(True, 1.2e3, 5.2, True), (False, 0.9e3, 20, False)],
+)
+def test_pipeline_from_yaml(
+    noise_value: float, count_rate: float, system_stable: bool, tasks_pass: bool
+):
     alert_dict = {
         "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
         "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
-        "measured_parameters": {"count_rate": 1.2e3, "system_stable": True},
-    }
-
-    # Some kind of Mock of actual ScienceAlert using the above data as input.
-    science_alert = ScienceAlert(**alert_dict)
-
-    # Location data of the observatory.
-    site = CTANorth()
-
-    window_task_options = {
-        "max_zenith_deg": 60,
-        "search_range_hours": 48,
-        "max_sun_altitude_deg": -18.0,
-        "max_moon_altitude_deg": -0.5,
-        "precision_minutes": 1,
-        "min_delay_minutes": 0,
-        "max_delay_minutes": 24 * 60,
-        "min_duration_minutes": 10,
-    }
-
-    window_filter_options = {
-        "min_window_duration_hours": 0.1,
-        "max_window_delay_hours": 50,
-        "window_selection": "longest",
-    }
-
-    # These tasks would be defined in Science Configurations.
-    tasks = [
-        TaskConfig(
-            task_name="FactorialsTask",
-            task_type="FactorialsTask",
-            task_options={"fact_n": 25},
-            filter_options={"min_fact_val": 1e20},
-        ),
-        TaskConfig(
-            task_name="ObservationWindowTask",
-            task_type="ObservationWindowTask",
-            task_options=window_task_options,
-            filter_options=window_filter_options,
-        ),
-        TaskConfig(
-            task_name="ParameterCountRate",
-            task_type="ParameterTask",
-            filter_options={
-                "parameter_name": "count_rate",
-                "parameter_requirement": 1e3,
-                "parameter_comparison": "greater",
-            },
-        ),
-        TaskConfig(
-            task_name="ParameterSystemStable",
-            task_type="ParameterTask",
-            filter_options={
-                "parameter_name": "system_stable",
-                "parameter_requirement": True,
-                "parameter_comparison": "equal",
-            },
-        ),
-    ]
-
-    # All tasks are executed sequentially.
-    console.rule("Processing of Tasks...")
-    task_results = run_pipeline(science_alert, site, tasks, "ObservationWindowTask")
-
-    # The results are reported in a dict.
-    console.rule("[bold] Results:")
-    print(task_results)
-    console.rule()
-
-    # We can analyse the results as needed. Some common things would e.g. be:
-    # - Did the Parameter Tasks pass?
-    pars_ok = analyse_parameter_pipe_results(task_results)
-    print(
-        f"[green]Checking that all analysed Paramters are fulfilled ... [/green][bold]{pars_ok}"
-    )
-
-    if pars_ok:
-        # - if yes: What is the observation window that was finally selected?
-        window = task_results
-        print(
-            f"[green]The selected observation window that passed all filtering is:[/green]"
-        )
-        print(window.dict())
-    else:
-        print("[red] No valid Observation Window.")
-
-
-def test_parse_tasks_from_yaml():
-    config_file_path = "configs/pipeline_config.yaml"
-
-    with open(config_file_path, "rb") as confg_file:
-        config_data = yaml.load(confg_file, Loader=SafeLoader)
-
-    # print(config_data)
-    for task_id, task_spec in config_data["pipeline"]["tasks"].items():
-        t = TaskConfig(**task_spec)
-        print(t)
-
-
-def test_pipeline_from_yaml():
-    alert_dict = {
-        "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
-        "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
-        "measured_parameters": {"count_rate": 1.2e3, "system_stable": True},
+        "measured_parameters": {
+            "count_rate": count_rate,
+            "system_stable": system_stable,
+            "noise": noise_value,
+        },
     }
 
     # Some kind of Mock of actual ScienceAlert using the above data as input.
@@ -137,7 +45,6 @@ def test_pipeline_from_yaml():
         config_data = yaml.load(confg_file, Loader=SafeLoader)
 
     processing_pipeline = config_data["pipeline"]
-    pipeline_type = processing_pipeline["pipline_type"]
     use_result_from = processing_pipeline["final_result_from"]
 
     tasks = [
@@ -150,5 +57,16 @@ def test_pipeline_from_yaml():
         tasks=tasks,
         return_result=use_result_from,
     )
+    assert isinstance(result, ObservationWindow) == tasks_pass
+    if not tasks_pass:
+        return
 
-    assert isinstance(result, ObservationWindow)
+    post_action_result = execute_post_action(
+        science_alert=science_alert,
+        task_result=result,
+        post_action_options=processing_pipeline["post_action"]["post_action_options"],
+        post_action_name=processing_pipeline["post_action"]["post_action_name"],
+    )
+    print("SchedulingBlock:", post_action_result)
+
+    assert isinstance(post_action_result, SchedulingBlock)
