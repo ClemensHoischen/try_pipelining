@@ -11,6 +11,12 @@ Currently this project is able to do:
 
 ![image](https://drive.google.com//uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
 
+This software uses:
+
+- `rich` for pretty output
+- `poetry` for bulding and dependency management
+- `black` format
+
 ## Plans Ideas and other stuff
 
 ### Integration of Pipeline execution and Post-Action
