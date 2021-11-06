@@ -52,8 +52,8 @@ pipeline:
         parameter_requirement: True
         parameter_comparison: equal
     task_5:
-      # check that the system_stable
-      # parameter in the alert itself is True.
+      # check that the noise parameter 
+      # in the alert is less than 10.5.
       task_name: Noise
       task_type: ParameterTask
       filter_options:
