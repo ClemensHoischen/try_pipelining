@@ -30,7 +30,7 @@ Only two actually useful tasks are implemented right now (`ObservationWindowTask
 
 - `DetermineUpdateTask`
 - `DetermineRetractionTask`
-- `DetermineMonitoringStrategyTask` (e.g. with options like `best_zenth`, `n_nights`, `hours_per_night`)
+- `DetermineMonitoringStrategyTask` (e.g. with options like `best_zenith`, `n_nights`, `hours_per_night`)
 
 ### Actually use VOEvents as alerts
 
