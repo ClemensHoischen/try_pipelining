@@ -41,7 +41,15 @@ class ScienceAlert(BaseModel):
 
 # ---------------- Option Structs ---------------
 
+task_options = {}
 
+
+def register_task_options(cls):
+    task_options.update({cls.__name__.replace("Options", "Task"): cls})
+    return cls
+
+
+@register_task_options
 class ObservationWindowOptions(BaseModel):
     max_zenith_deg: float = Field(..., ge=0, le=90)
     search_range_hours: float = Field(..., ge=0)
@@ -53,45 +61,43 @@ class ObservationWindowOptions(BaseModel):
     min_duration_minutes: float = Field(..., ge=0)
 
 
+@register_task_options
 class FactorialsOptions(BaseModel):
     fact_n: int
 
 
+@register_task_options
 class ParameterOptions(BaseModel):
     pass
 
 
-options_map = {
-    "ObservationWindowTask": ObservationWindowOptions,
-    "FactorialsTask": FactorialsOptions,
-    "ParameterTask": ParameterOptions,
-}
-
-
 # --------------- Filter Option structs ----------
 
+filter_options = {}
 
+
+def register_filter_options(cls):
+    filter_options.update({cls.__name__.replace("FilterOptions", "Task"): cls})
+    return cls
+
+
+@register_filter_options
 class FactorialsFilterOptions(BaseModel):
     min_fact_val: float = Field(..., ge=0)
 
 
+@register_filter_options
 class ObservationWindowFilterOptions(BaseModel):
     min_window_duration_hours: float = Field(..., ge=0)
     max_window_delay_hours: float = Field(..., ge=0)
     window_selection: str
 
 
+@register_filter_options
 class ParameterFilterOptions(BaseModel):
     parameter_name: str
     parameter_requirement: Any
     parameter_comparison: str
-
-
-filter_option_map = {
-    "ObservationWindowTask": ObservationWindowFilterOptions,
-    "FactorialsTask": FactorialsFilterOptions,
-    "ParameterTask": ParameterFilterOptions,
-}
 
 
 # -------------- Output structs -----------------

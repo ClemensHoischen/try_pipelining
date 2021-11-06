@@ -34,14 +34,14 @@ def run_pipeline(
             progress.update(progress_tasks[i], advance=1)
 
             # --- Execute the task---
-            options = data_models.options_map[task_type](**task_options)
+            options = data_models.task_options[task_type](**task_options)
             t = available_tasks[task_type](science_alert, site, options)
             task_result = t.run()
             progress.update(progress_tasks[i], advance=1)
 
             # --- Execute the filtering ---
             raw_filter_options = task.filter_options
-            filter_opts = data_models.filter_option_map[task_type](**raw_filter_options)
+            filter_opts = data_models.filter_options[task_type](**raw_filter_options)
             filtered_results = t.filter(result=task_result, filter_options=filter_opts)
 
             # --- Add to the Results Dict ---
