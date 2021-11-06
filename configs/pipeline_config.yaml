@@ -9,7 +9,7 @@ pipeline:
       task_options:
         fact_n: 25
       filter_options:
-        min_fact_val: 1e20
+        min_fact_val: 1.e+20
     task_2:
       task_name: ObservationWindowTask
       task_type: ObservationWindowTask
@@ -31,7 +31,7 @@ pipeline:
       task_type: ParameterTask
       filter_options:
         parameter_name: count_rate
-        parameter_requirement: 1e3
+        parameter_requirement: 1.e+3
         parameter_comparison: greater
     task_4:
       task_name: SystemStable

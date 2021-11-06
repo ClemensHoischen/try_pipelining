@@ -114,6 +114,30 @@ def test_parse_tasks_from_yaml():
 
     # print(config_data)
     for task_id, task_spec in config_data["pipeline"]["tasks"].items():
-        print(task_id, ":", task_spec)
-        [print(kw, arg) for kw, arg in task_spec.items()]
         t = TaskConfig(**task_spec)
+        print(t)
+
+
+def test_pipeline_from_yaml():
+    config_file_path = "configs/pipeline_config.yaml"
+    with open(config_file_path, "rb") as confg_file:
+        config_data = yaml.load(confg_file, Loader=SafeLoader)
+
+    tasks = [
+        TaskConfig(**task_spec)
+        for _, task_spec in config_data["pipeline"]["tasks"].items()
+    ]
+
+    alert_dict = {
+        "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
+        "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
+        "measured_parameters": {"count_rate": 1.2e3, "system_stable": True},
+    }
+
+    # Some kind of Mock of actual ScienceAlert using the above data as input.
+    science_alert = ScienceAlert(**alert_dict)
+
+    # Location data of the observatory.
+    site = CTANorth()
+
+    run_pipeline(science_alert=science_alert, site=site, tasks=tasks)
