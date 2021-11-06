@@ -1,0 +1,42 @@
+---
+pipeline:
+  result_type: ObservationWindow
+  action: trigger_observations
+  tasks:
+    task_1:
+      task_name: FactorialsTask
+      task_type: FactorialsTask
+      task_options:
+        fact_n: 25
+      filter_options:
+        min_fact_val: 1e20
+    task_2:
+      task_name: ObservationWindowTask
+      task_type: ObservationWindowTask
+      task_options:
+        max_zenith_deg: 60
+        search_range_hours: 48
+        max_sun_altitude_deg: -18.0
+        max_moon_altitude_deg: -0.5
+        precision_minutes: 1
+        min_delay_minutes: 0
+        max_delay_minutes: 1440  # = 60 * 24
+        min_duration_minutes: 10
+      filter_options:
+        min_window_duration_hours: 0.1
+        max_window_delay_hours: 50
+        window_selection: longest
+    task_3:
+      task_name: CountRate
+      task_type: ParameterTask
+      filter_options:
+        parameter_name: count_rate
+        parameter_requirement: 1e3
+        parameter_comparison: greater
+    task_4:
+      task_name: SystemStable
+      task_type: ParameterTask
+      filter_options:
+        parameter_name: system_stable
+        parameter_requirement: True
+        parameter_comparison: equal

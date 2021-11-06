@@ -21,9 +21,9 @@ class CTANorth:
         self.name = "CTA North"
 
 
-class Task(BaseModel):
+class TaskConfig(BaseModel):
     task_name: str
-    pipeline_name: str
+    task_type: str
     task_options: dict = {}
     filter_options: dict
 
@@ -62,9 +62,9 @@ class ParameterOptions(BaseModel):
 
 
 options_map = {
-    "ObservationWindowPipeline": ObservationWindowOptions,
-    "FactorialsPipeline": FactorialsOptions,
-    "ParameterPipeline": ParameterOptions,
+    "ObservationWindowTask": ObservationWindowOptions,
+    "FactorialsTask": FactorialsOptions,
+    "ParameterTask": ParameterOptions,
 }
 
 
@@ -88,9 +88,9 @@ class ParameterFilterOptions(BaseModel):
 
 
 filter_option_map = {
-    "ObservationWindowPipeline": ObservationWindowFilterOptions,
-    "FactorialsPipeline": FactorialsFilterOptions,
-    "ParameterPipeline": ParameterFilterOptions,
+    "ObservationWindowTask": ObservationWindowFilterOptions,
+    "FactorialsTask": FactorialsFilterOptions,
+    "ParameterTask": ParameterFilterOptions,
 }
 
 

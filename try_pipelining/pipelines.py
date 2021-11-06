@@ -11,6 +11,7 @@ from try_pipelining.data_models import (
     ObservationWindowTaskResult,
     ParameterFilterOptions,
     ParameterResult,
+    TaskConfig,
 )
 from try_pipelining.factorials import factorial
 from try_pipelining.observation_windows import (
@@ -30,7 +31,7 @@ class MyProgress(Progress):
 def run_pipeline(
     science_alert: data_models.ScienceAlert,
     site: data_models.CTANorth,
-    tasks: List[data_models.Task],
+    tasks: List[data_models.TaskConfig],
 ):
     """ The Actial Pipeline function. """
 
@@ -45,21 +46,19 @@ def run_pipeline(
             # --- Setup of the Task ---
             task_name = task.task_name
             task_options = task.task_options
-            pipe_name = task.pipeline_name
+            task_type = task.task_type
             progress.update(progress_tasks[i], advance=1)
 
             # --- Execute the task---
-            options = data_models.options_map[pipe_name](**task_options)
-            pipe = pipeline_map[pipe_name](science_alert, site, options)
-            task_result = pipe.run()
+            options = data_models.options_map[task_type](**task_options)
+            t = available_tasks[task_type](science_alert, site, options)
+            task_result = t.run()
             progress.update(progress_tasks[i], advance=1)
 
             # --- Execute the filtering ---
             raw_filter_options = task.filter_options
-            filter_opts = data_models.filter_option_map[pipe_name](**raw_filter_options)
-            filtered_results = pipe.filter(
-                result=task_result, filter_options=filter_opts
-            )
+            filter_opts = data_models.filter_option_map[task_type](**raw_filter_options)
+            filtered_results = t.filter(result=task_result, filter_options=filter_opts)
 
             # --- Add to the Results Dict ---
             task_results[task_name + "Result"] = filtered_results
@@ -68,8 +67,16 @@ def run_pipeline(
         return task_results
 
 
-class Pipeline:
-    """Base Class for all Pipeline Implementations.
+available_tasks = {}
+
+
+def register_task(cls):
+    available_tasks.update({cls.__name__: cls})
+    return cls
+
+
+class Task:
+    """Base Class for all Task Implementations.
 
     Implementations need to define both the run() and the filter() method."""
 
@@ -79,8 +86,9 @@ class Pipeline:
         self.options = options
 
 
-class FactorialPipeline(Pipeline):
-    """Pipeline implementation that calculates a factorial and filters based the resulting value."""
+@register_task
+class FactorialsTask(Task):
+    """Task implementation that calculates a factorial and filters based the resulting value."""
 
     def run(self):
         """Calculation of the factorial."""
@@ -97,7 +105,8 @@ class FactorialPipeline(Pipeline):
             return result
 
 
-class ObservationWindowPipeline(Pipeline):
+@register_task
+class ObservationWindowTask(Task):
     """Pipeline Implementation that calculates observation Windows and filters them."""
 
     def run(self):
@@ -135,7 +144,8 @@ class ObservationWindowPipeline(Pipeline):
         )
 
 
-class ParameterPipeline(Pipeline):
+@register_task
+class ParameterTask(Task):
     """Pipeline Implementation that only filters parameters of the alert."""
 
     def run(self):
@@ -151,10 +161,3 @@ class ParameterPipeline(Pipeline):
             parameter_name=filter_options.parameter_name,
             parameter_ok=parameter.execute_parameter_filtering(pars, filter_options),
         )
-
-
-pipeline_map = {
-    "FactorialsPipeline": FactorialPipeline,
-    "ObservationWindowPipeline": ObservationWindowPipeline,
-    "ParameterPipeline": ParameterPipeline,
-}
