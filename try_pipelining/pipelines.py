@@ -16,6 +16,7 @@ def run_pipeline(
     science_alert: data_models.ScienceAlert,
     site: data_models.CTANorth,
     tasks: List[data_models.TaskConfig],
+    return_result: str,
 ):
     """ The Actial Pipeline function. """
 
@@ -48,4 +49,4 @@ def run_pipeline(
             task_results[task_name + "Result"] = filtered_results
             progress.update(progress_tasks[i], advance=1)
 
-        return task_results
+        return task_results[return_result + "Result"]

@@ -27,5 +27,4 @@ configuration of the pipeline itself.
 The pipelines should be easy to configure in a human-friendly way.
 `YAML` seems to be good candidate for that.
 
-
-
+A pipeline definition could look like [this](configs/pipeline_config.yaml).

@@ -10,6 +10,7 @@ from yaml.loader import SafeLoader
 from try_pipelining.data_models import CTANorth, ScienceAlert, TaskConfig
 from try_pipelining.parameter import analyse_parameter_pipe_results
 from try_pipelining.pipelines import run_pipeline
+from try_pipelining.observation_windows import ObservationWindow
 
 
 def test_pipeline():
@@ -81,7 +82,7 @@ def test_pipeline():
 
     # All tasks are executed sequentially.
     console.rule("Processing of Tasks...")
-    task_results = run_pipeline(science_alert, site, tasks)
+    task_results = run_pipeline(science_alert, site, tasks, "ObservationWindowTask")
 
     # The results are reported in a dict.
     console.rule("[bold] Results:")
@@ -97,7 +98,7 @@ def test_pipeline():
 
     if pars_ok:
         # - if yes: What is the observation window that was finally selected?
-        window = task_results["ObservationWindowTaskResult"]
+        window = task_results
         print(
             f"[green]The selected observation window that passed all filtering is:[/green]"
         )
@@ -119,15 +120,6 @@ def test_parse_tasks_from_yaml():
 
 
 def test_pipeline_from_yaml():
-    config_file_path = "configs/pipeline_config.yaml"
-    with open(config_file_path, "rb") as confg_file:
-        config_data = yaml.load(confg_file, Loader=SafeLoader)
-
-    tasks = [
-        TaskConfig(**task_spec)
-        for _, task_spec in config_data["pipeline"]["tasks"].items()
-    ]
-
     alert_dict = {
         "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
         "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
@@ -140,4 +132,23 @@ def test_pipeline_from_yaml():
     # Location data of the observatory.
     site = CTANorth()
 
-    run_pipeline(science_alert=science_alert, site=site, tasks=tasks)
+    config_file_path = "configs/pipeline_config.yaml"
+    with open(config_file_path, "rb") as confg_file:
+        config_data = yaml.load(confg_file, Loader=SafeLoader)
+
+    processing_pipeline = config_data["pipeline"]
+    pipeline_type = processing_pipeline["pipline_type"]
+    use_result_from = processing_pipeline["final_result_from"]
+
+    tasks = [
+        TaskConfig(**task_spec) for _, task_spec in processing_pipeline["tasks"].items()
+    ]
+
+    result = run_pipeline(
+        science_alert=science_alert,
+        site=site,
+        tasks=tasks,
+        return_result=use_result_from,
+    )
+
+    assert isinstance(result, ObservationWindow)
