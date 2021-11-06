@@ -2,10 +2,10 @@
 pipeline:
   # The Task result from this Task will be
   # returned from the pipeline.
-  final_result_from: ObservationWindow 
+  final_result_from: ObservationWindow
   # specifies the kind of post-actions that will
   # follow the pipeline executtion.
-  pipline_type: trigger_wobble_observations 
+  pipline_type: trigger_wobble_observations
   tasks:
     task_1:
       # A Task that calculates n! and checks

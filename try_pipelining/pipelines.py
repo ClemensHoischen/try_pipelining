@@ -18,7 +18,7 @@ def run_pipeline(
     tasks: List[data_models.TaskConfig],
     return_result: str,
 ):
-    """ The Actial Pipeline function. """
+    """The Actial Pipeline function."""
 
     with MyProgress() as progress:
         progress_tasks = [
