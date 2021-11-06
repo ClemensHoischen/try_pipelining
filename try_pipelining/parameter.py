@@ -20,10 +20,6 @@ def execute_parameter_filtering(
     comparison_mode: str = parameter_filtering_options.parameter_comparison
 
     actual_parameter = parameters.get(parameter_to_filter)
-    print(comparison_mode)
-    if comparison_mode == "equal":
-        print(actual_parameter, required_value)
-        print(evaluators[comparison_mode])
 
     return evaluators[comparison_mode](actual_parameter, required_value)
 
