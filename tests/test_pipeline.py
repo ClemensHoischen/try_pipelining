@@ -67,6 +67,6 @@ def test_pipeline_from_yaml(
         post_action_options=processing_pipeline["post_action"]["post_action_options"],
         post_action_name=processing_pipeline["post_action"]["post_action_name"],
     )
-    print("SchedulingBlock:", post_action_result)
+    print("SchedulingBlock:", post_action_result.dict())
 
     assert isinstance(post_action_result, SchedulingBlock)

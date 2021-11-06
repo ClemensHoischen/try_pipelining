@@ -3,24 +3,44 @@
 # README
 
 This is a little project to explore on how to implement dynamically assembeled pipelines.
+Currently this project is able to do:
+
+- Read a pipeline configuration YAML file
+- Execute the specified tasks and filter the results according to the configuration
+- perform a post-action step
+
+![image](https://drive.google.com//uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
 
 ## Plans Ideas and other stuff
 
-### The current pipeline
+### Integration of Pipeline execution and Post-Action
 
-The currently implemented pipeline allows to get only one single kind of result, an ObservationWindow. That should somehow be part of the pipeline definition. On could
-name the pipeline accordingly and state the kind of result in the config of the pipeline.
+Currently the pipeline of tasks and the post-action are
+called independently of each other.
 
-Other pipelines may result in:
+### More Tasks
 
+Only two actually useful tasks are implemented right now (`ObservationWindowTask` and `ParameterTask`). Many other Tasks will be needed:
+
+- `DetermineUpdateTask`
+- `DetermineRetractionTask`
+- `DetermineMonitoringStrategyTask` (e.g. with options like `best_zenth`, `n_nights`, `hours_per_night`)
+
+### Actually use VOEvents as alerts
+
+The simple mock alerts will not be sufficient for ever.
+VOEvent is the international standard for transient alerts.
+
+### More Pipelines
+
+Pipelines could result in:
+
+- A decision to trigger observations (currently implemented)
 - A decision to retract a previous observation window
 - A decision to update a previous observation window
 - A list of observation windows for a number of nights (monitoring)
 - A list of observation windows covering a larger region with differnt positions
 - ...
-
-All these kind of pipelines and their results should be representable in the
-configuration of the pipeline itself.
 
 # Pipeline Configurations
 
@@ -28,3 +48,4 @@ The pipelines should be easy to configure in a human-friendly way.
 `YAML` seems to be good candidate for that.
 
 A pipeline definition could look like [this](configs/pipeline_config.yaml).
+Nicely annotated and humanly readable.
