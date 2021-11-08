@@ -3,6 +3,8 @@ pipeline:
   # The Task result from this Task will be
   # returned from the pipeline.
   final_result_from: ObservationWindow
+  # Definition of the tasks that are supposed to be
+  # executed in the pipeline
   tasks:
     Factorials:
       # A Task that calculates n! and checks
@@ -56,9 +58,9 @@ pipeline:
         parameter_requirement: 10.5
         parameter_comparison: less
   # specifies what will be done with the result
-  # of the pipeline (if there is one).
+  # of the pipeline (if there is one that survives).
   post_action:
-    create_wobble_scheduling_block:
+    CreateWobbleSchedulingBlock:
       wobble:
         offsets: [0.7, 0.7, 0.7, 0.7]
         angles: [0, 90, 180, 270]

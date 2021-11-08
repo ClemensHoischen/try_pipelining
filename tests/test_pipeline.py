@@ -1,4 +1,5 @@
 from datetime import datetime
+from pydantic.typing import NoneType
 
 import yaml
 import pytest
@@ -9,11 +10,13 @@ from yaml.loader import SafeLoader
 from try_pipelining.data_models import (
     CTANorth,
     ScienceAlert,
-    TaskConfig,
     SchedulingBlock,
 )
-from try_pipelining.pipelines import run_pipeline, execute_post_action
-from try_pipelining.observation_windows import ObservationWindow
+from try_pipelining.pipelines import run_pipeline, parse_tasks, parse_post_actions
+
+from try_pipelining.post_actions import (
+    Wobble,
+)
 
 
 @pytest.mark.parametrize(
@@ -44,32 +47,36 @@ def test_pipeline_from_yaml(
         config_data = yaml.load(confg_file, Loader=SafeLoader)
 
     processing_pipeline = config_data["pipeline"]
-    use_result_from = processing_pipeline["final_result_from"]
 
-    task_cfgs = [
-        TaskConfig(task_name=task_name, **task_spec)
-        for task_name, task_spec in processing_pipeline["tasks"].items()
-    ]
-
-    result = run_pipeline(
+    tasks = parse_tasks(
         science_alert=science_alert,
         site=site,
-        task_cfgs=task_cfgs,
-        return_result=use_result_from,
+        tasks_configuration_section=processing_pipeline["tasks"],
     )
-    assert isinstance(result, ObservationWindow) == tasks_pass
-    if not tasks_pass:
-        return
 
-    post_action_cfg = processing_pipeline["post_action"]
-    for action, options in post_action_cfg.items():
+    post_actions = parse_post_actions(
+        science_alert=science_alert,
+        post_action_cfg=processing_pipeline["post_action"],
+    )
 
-        post_action_result = execute_post_action(
-            science_alert=science_alert,
-            task_result=result,
-            post_action_options=options,
-            post_action_name=action,
-        )
-        print("SchedulingBlock:", post_action_result.dict())
+    use_result_from = processing_pipeline["final_result_from"]
 
-        assert isinstance(post_action_result, SchedulingBlock)
+    result = run_pipeline(
+        tasks=tasks,
+        return_result=use_result_from,
+        post_actions=post_actions,
+    )
+
+    if tasks_pass:
+        assert isinstance(result, SchedulingBlock)
+        print("[bold blue]--- RESULT ---")
+        print(result.dict())
+    else:
+        assert isinstance(result, NoneType)
+
+
+def test_wobble_validation():
+    Wobble(offsets=[0.7, 0.7, 0.7, 0.7], angles=[0, 90, 180, 270])
+
+    with pytest.raises(AttributeError):
+        Wobble(offsets=[0.7, 0.7, 0.7], angles=[0, 90, 180, 270])

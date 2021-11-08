@@ -49,6 +49,16 @@ class Task:
         assert isinstance(self.task_options, available_task_options[self.task_type])
         assert isinstance(self.filter_options, available_filter_options[self.task_type])
 
+    def run(self):
+        raise NotImplementedError(
+            "Don't work with bare Task Instances. Use the child classes."
+        )
+
+    def filter(self, result):
+        raise NotImplementedError(
+            "Don't work with bare Task Instances. Use the child classes."
+        )
+
 
 @register_task
 class FactorialsTask(Task):

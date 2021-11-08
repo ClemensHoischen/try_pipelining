@@ -1,59 +1,35 @@
-from typing import List, Any
+from typing import List
 
 from rich.progress import track
 from rich.tree import Tree
 from rich import print
 
-from try_pipelining import data_models
-from try_pipelining.data_models import available_task_options, available_filter_options
-from try_pipelining.tasks import available_tasks
-from try_pipelining.data_models import SchedulingBlock, ScienceAlert
+
+from try_pipelining.data_models import (
+    ScienceAlert,
+    CTANorth,
+    TaskConfig,
+    ScienceAlert,
+    available_task_options,
+    available_filter_options,
+)
+from try_pipelining.post_actions import (
+    PostAction,
+    available_post_actions,
+    available_post_action_options,
+)
+from try_pipelining.tasks import available_tasks, Task
 
 
-available_post_actions = {}
+def parse_tasks(
+    science_alert: ScienceAlert, site: CTANorth, tasks_configuration_section: dict
+) -> List[Task]:
 
+    task_cfgs = [
+        TaskConfig(task_name=task_name, **task_spec)
+        for task_name, task_spec in tasks_configuration_section.items()
+    ]
 
-def register_post_action(func):
-    available_post_actions.update({func.__name__: func})
-    return func
-
-
-@register_post_action
-def create_wobble_scheduling_block(
-    science_alert: ScienceAlert, task_result: Any, options: dict
-):
-    sb_dict = {
-        "coords": science_alert.coords,
-        "time_constraints": {
-            "start_time": task_result.start_time,
-            "end_time": task_result.end_time,
-        },
-        "wobble_options": options["wobble"],
-        "proposal": options["proposal"],
-    }
-    return SchedulingBlock(**sb_dict)
-
-
-def execute_post_action(
-    science_alert: ScienceAlert,
-    task_result: Any,
-    post_action_name: str,
-    post_action_options: dict,
-):
-    return available_post_actions[post_action_name](
-        science_alert, task_result, post_action_options
-    )
-
-
-def run_pipeline(
-    science_alert: data_models.ScienceAlert,
-    site: data_models.CTANorth,
-    task_cfgs: List[data_models.TaskConfig],
-    return_result: str,
-):
-    """The Actial Pipeline function."""
-
-    # Translate from task configs to Task Implementations
     tasks = [
         available_tasks[t.task_type](
             science_alert=science_alert,
@@ -65,6 +41,31 @@ def run_pipeline(
         )
         for t in task_cfgs
     ]
+    return tasks
+
+
+def parse_post_actions(
+    science_alert: ScienceAlert, post_action_cfg: dict
+) -> List[PostAction]:
+    post_actions = [
+        available_post_actions[pa](
+            science_alert=science_alert,
+            action_type=pa,
+            action_options=available_post_action_options[pa](**post_action_cfg[pa]),
+        )
+        for pa in post_action_cfg
+    ]
+    return post_actions
+
+
+def run_pipeline(
+    tasks: List[Task],
+    return_result: str,
+    post_actions: List[PostAction],
+):
+    """The Actial Pipeline function."""
+
+    # Translate from task configs to Task Implementations
 
     task_results = {}
     tasks_passed = []
@@ -73,8 +74,7 @@ def run_pipeline(
     for t in track(
         tasks,
         description="[bold blue]+Running Tasks...",
-        total=len(task_cfgs),
-        style="bar.back",
+        total=len(tasks),
     ):
         # --- run and filter the result ---
         filtered_results = t.filter(result=t.run())
@@ -90,5 +90,16 @@ def run_pipeline(
     [tree.add(rep) for rep in tasks_report]
     print(tree)
 
-    if False not in tasks_passed:
-        return task_results[return_result + "Result"]
+    if False in tasks_passed:
+        print("[bold red]Some Tasks failed.\n ... No result returned from Pipeline.")
+        return
+
+    result = task_results[return_result + "Result"]
+    for post_action in track(
+        post_actions,
+        description="[bold blue]+Executing Post-action",
+        total=len(post_actions),
+    ):
+        result = post_action.run(task_result=result)
+
+    return result
