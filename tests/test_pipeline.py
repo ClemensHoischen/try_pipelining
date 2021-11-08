@@ -70,7 +70,9 @@ def test_pipeline_from_yaml(
     if tasks_pass:
         assert isinstance(result, SchedulingBlock)
         print("[bold blue]--- RESULT ---")
+        print(f"[bold blue] {type(result).__name__}:")
         print(result.dict())
+        print("[bold blue]--------------")
     else:
         assert isinstance(result, NoneType)
 
