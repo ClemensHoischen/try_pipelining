@@ -4,7 +4,6 @@ import yaml
 import pytest
 import pytz
 from rich import print
-from rich.console import Console
 from yaml.loader import SafeLoader
 
 from try_pipelining.data_models import (
@@ -47,26 +46,30 @@ def test_pipeline_from_yaml(
     processing_pipeline = config_data["pipeline"]
     use_result_from = processing_pipeline["final_result_from"]
 
-    tasks = [
-        TaskConfig(**task_spec) for _, task_spec in processing_pipeline["tasks"].items()
+    task_cfgs = [
+        TaskConfig(task_name=task_name, **task_spec)
+        for task_name, task_spec in processing_pipeline["tasks"].items()
     ]
 
     result = run_pipeline(
         science_alert=science_alert,
         site=site,
-        tasks=tasks,
+        task_cfgs=task_cfgs,
         return_result=use_result_from,
     )
     assert isinstance(result, ObservationWindow) == tasks_pass
     if not tasks_pass:
         return
 
-    post_action_result = execute_post_action(
-        science_alert=science_alert,
-        task_result=result,
-        post_action_options=processing_pipeline["post_action"]["post_action_options"],
-        post_action_name=processing_pipeline["post_action"]["post_action_name"],
-    )
-    print("SchedulingBlock:", post_action_result.dict())
+    post_action_cfg = processing_pipeline["post_action"]
+    for action, options in post_action_cfg.items():
 
-    assert isinstance(post_action_result, SchedulingBlock)
+        post_action_result = execute_post_action(
+            science_alert=science_alert,
+            task_result=result,
+            post_action_options=options,
+            post_action_name=action,
+        )
+        print("SchedulingBlock:", post_action_result.dict())
+
+        assert isinstance(post_action_result, SchedulingBlock)

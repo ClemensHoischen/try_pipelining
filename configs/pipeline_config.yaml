@@ -4,19 +4,17 @@ pipeline:
   # returned from the pipeline.
   final_result_from: ObservationWindow
   tasks:
-    task_1:
+    Factorials:
       # A Task that calculates n! and checks
       # that the result is larger than min_fact_val
-      task_name: Factorials
       task_type: FactorialsTask
       task_options:
         fact_n: 25
       filter_options:
         min_fact_val: 1.e+20
-    task_2:
+    ObservationWindow:
       # A Task that evaluates observation windows
       # under the given conditions in the options
-      task_name: ObservationWindow
       task_type: ObservationWindowTask
       task_options:
         max_zenith_deg: 60
@@ -33,28 +31,25 @@ pipeline:
         min_window_duration_hours: 0.1
         max_window_delay_hours: 50
         window_selection: longest
-    task_3:
+    CountRate:
       # check that the parameter count_rate in
       # the alert itself is large enough.
-      task_name: CountRate
       task_type: ParameterTask
       filter_options:
         parameter_name: count_rate
         parameter_requirement: 1.e+3
         parameter_comparison: greater
-    task_4:
+    SystemStable:
       # check that the system_stable
       # parameter in the alert itself is True.
-      task_name: SystemStable
       task_type: ParameterTask
       filter_options:
         parameter_name: system_stable
         parameter_requirement: True
         parameter_comparison: equal
-    task_5:
+    Noise:
       # check that the noise parameter 
       # in the alert is less than 10.5.
-      task_name: Noise
       task_type: ParameterTask
       filter_options:
         parameter_name: noise
@@ -63,12 +58,11 @@ pipeline:
   # specifies what will be done with the result
   # of the pipeline (if there is one).
   post_action:
-      post_action_name: create_wobble_scheduling_block
-      post_action_options:
-        wobble:
-          offsets: [0.7, 0.7, 0.7, 0.7]
-          angles: [0, 90, 180, 270]
-        proposal:
-          proposal_id: 1
-          proposal_class: A
-          proposal_rank: 15.2
+    create_wobble_scheduling_block:
+      wobble:
+        offsets: [0.7, 0.7, 0.7, 0.7]
+        angles: [0, 90, 180, 270]
+      proposal:
+        proposal_id: 1
+        proposal_class: A
+        proposal_rank: 15.2

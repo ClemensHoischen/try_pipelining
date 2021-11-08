@@ -63,11 +63,11 @@ class SchedulingBlock(BaseModel):
 
 # ---------------- Option Structs ---------------
 
-task_options = {}
+available_task_options = {}
 
 
 def register_task_options(cls):
-    task_options.update({cls.__name__.replace("Options", "Task"): cls})
+    available_task_options.update({cls.__name__.replace("Options", "Task"): cls})
     return cls
 
 
@@ -95,11 +95,13 @@ class ParameterOptions(BaseModel):
 
 # --------------- Filter Option structs ----------
 
-filter_options = {}
+available_filter_options = {}
 
 
 def register_filter_options(cls):
-    filter_options.update({cls.__name__.replace("FilterOptions", "Task"): cls})
+    available_filter_options.update(
+        {cls.__name__.replace("FilterOptions", "Task"): cls}
+    )
     return cls
 
 
