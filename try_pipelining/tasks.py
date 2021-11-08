@@ -2,12 +2,11 @@ from typing import Union
 
 from try_pipelining import parameter
 from try_pipelining.data_models import (
-    FactorialsFilterOptions,
     FactorialsTaskResult,
-    ObservationWindowFilterOptions,
     ObservationWindowTaskResult,
-    ParameterFilterOptions,
     ParameterResult,
+    available_task_options,
+    available_filter_options,
 )
 from try_pipelining.factorials import factorial
 from try_pipelining.observation_windows import (
@@ -44,6 +43,11 @@ class Task:
         self.task_options = task_options
         self.filter_options = filter_options
         self.passed = False
+        self.validate()
+
+    def validate(self):
+        assert isinstance(self.task_options, available_task_options[self.task_type])
+        assert isinstance(self.filter_options, available_filter_options[self.task_type])
 
 
 @register_task
@@ -59,7 +63,6 @@ class FactorialsTask(Task):
     def filter(self, result: FactorialsTaskResult) -> Union[FactorialsTaskResult, None]:
         """Filtering the calculated factorial."""
         assert isinstance(result, FactorialsTaskResult)
-        assert isinstance(self.filter_options, FactorialsFilterOptions)
 
         if result.factorial_result > self.filter_options.min_fact_val:
             self.passed = True
@@ -86,7 +89,6 @@ class ObservationWindowTask(Task):
     ) -> Union[ObservationWindow, None]:
         """Filters and selectes Observation Windows according to filtering options."""
         assert isinstance(result, ObservationWindowTaskResult)
-        assert isinstance(self.filter_options, ObservationWindowFilterOptions)
 
         filtered_windows = []
         for window in result.windows:
@@ -116,12 +118,12 @@ class ParameterTask(Task):
 
     def filter(self, result: None) -> ParameterResult:
         """Checks that the alert parmaeter machtes the requirement specified in the filter options."""
-        assert isinstance(self.filter_options, ParameterFilterOptions)
 
         pars: dict = self.science_alert.measured_parameters
         passed = parameter.execute_parameter_filtering(pars, self.filter_options)
         if passed:
             self.passed = True
+
         return ParameterResult(
             parameter_name=self.filter_options.parameter_name,
             parameter_ok=passed,
