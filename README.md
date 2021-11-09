@@ -9,13 +9,27 @@ Currently this project is able to do:
 - Execute the specified tasks and filter the results according to the configuration
 - perform a sequence of post-action steps (in this case : create an SB and from that create OBs).
 
+If all works out,this is what you will see:
 ![image](https://drive.google.com//uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
+
+If some of the requirements specified in the configuration are not met, the output will look
+something like this:
+
+![image](https://drive.google.com/file/d/1Pp3kz1bMIf0SDghg-EeTEl8KNbRvc_6W/view?usp=sharing)
 
 This software uses:
 
 - `rich` for pretty output
 - `poetry` for bulding and dependency management
 - `black` format
+
+## Pipeline Configurations
+
+The pipelines should be easy to configure in a human-friendly way.
+`YAML` seems to be good candidate for that.
+
+A pipeline definition could look like [this](configs/pipeline_config.yaml).
+Nicely annotated and humanly readable.
 
 ## Plans Ideas and other stuff
 
@@ -42,11 +56,3 @@ Pipelines could result in:
 - A list of observation windows for a number of nights (monitoring)
 - A list of observation windows covering a larger region with differnt positions
 - ...
-
-# Pipeline Configurations
-
-The pipelines should be easy to configure in a human-friendly way.
-`YAML` seems to be good candidate for that.
-
-A pipeline definition could look like [this](configs/pipeline_config.yaml).
-Nicely annotated and humanly readable.

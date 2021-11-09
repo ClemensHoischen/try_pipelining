@@ -91,7 +91,13 @@ def run_pipeline(
     print(task_tree)
 
     if False in tasks_passed:
-        print("[bold red]Some Tasks failed.\n ... No result returned from Pipeline.")
+        print(
+            "[bold red]Some Tasks failed... -> No valid result returned from Pipeline."
+        )
+        print(
+            "[bold red]Nothing more do be done here ... ",
+            ":frowning_face_with_open_mouth:",
+        )
         return
 
     # The task result that is specified to be used further.
