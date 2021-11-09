@@ -86,9 +86,9 @@ def run_pipeline(
         rep_task = f"[bold green]PASS" if t.passed else f"[bold red]FAIL"
         tasks_report.append(f"{t.task_name} - {rep_task}")
 
-    tree = Tree("[bold Blue]+Tasks report:", highlight=True)
-    [tree.add(rep) for rep in tasks_report]
-    print(tree)
+    task_tree = Tree("[bold Blue]+Tasks report:", highlight=True)
+    [task_tree.add(rep) for rep in tasks_report]
+    print(task_tree)
 
     if False in tasks_passed:
         print("[bold red]Some Tasks failed.\n ... No result returned from Pipeline.")
@@ -97,6 +97,7 @@ def run_pipeline(
     # The task result that is specified to be used further.
     result = task_results[return_result]
 
+    post_action_tree = Tree("[bold Blue]+Post-action report:", highlight=True)
     # a dict of the post-action results for logging and reporting purposes.
     post_action_results = {return_result: result}
     for post_action in track(
@@ -107,5 +108,7 @@ def run_pipeline(
         # results are chained in order of post action specificiation in the configuration
         result = post_action.run(task_result=result)
         post_action_results.update({post_action.action_type: result})
+        post_action_tree.add(post_action.action_type + "[bold green] DONE")
 
+    print(post_action_tree)
     return post_action_results
