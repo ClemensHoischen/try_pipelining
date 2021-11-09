@@ -1,7 +1,7 @@
 ---
 alert_matching:
   swift_alerts:
-    required_keys: ["SWIFT", "BAT_GRB_Pos"]
+    required_keys: ["Fermi", "GBM_GRB_Pos"]
 pipeline:
   # The Task result from this Task will be
   # returned from the pipeline.

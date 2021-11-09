@@ -38,8 +38,8 @@ class Task:
     ):
         self.science_alert = science_alert
         self.site = site
-        self.task_name = task_name
-        self.task_type = task_type
+        self.task_name: str = task_name
+        self.task_type: str = task_type
         self.task_options = task_options
         self.filter_options = filter_options
         self.passed = False

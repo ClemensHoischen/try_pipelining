@@ -1,5 +1,9 @@
 from typing import List
 
+import os
+import yaml
+from yaml.loader import SafeLoader
+
 from rich.progress import track
 from rich.tree import Tree
 from rich import print
@@ -10,6 +14,8 @@ from try_pipelining.data_models import (
     CTANorth,
     TaskConfig,
     ScienceAlert,
+    SchedulingBlock,
+    ObservationBlock,
     available_task_options,
     available_filter_options,
 )
@@ -19,6 +25,25 @@ from try_pipelining.post_actions import (
     available_post_action_options,
 )
 from try_pipelining.tasks import available_tasks, Task
+
+
+def match_science_configs(science_alert: ScienceAlert, path_to_configs: str):
+    all_cfgs = os.listdir(path_to_configs)
+    cfgs = [path_to_configs + "/" + cfg for cfg in all_cfgs]
+
+    matched_cfg_data_list = []
+    for cfg in cfgs:
+        with open(cfg, "rb") as confg_file:
+            config_data = yaml.load(confg_file, Loader=SafeLoader)
+
+        matching_reqs = config_data["alert_matching"]
+        for alert_type in matching_reqs:
+            print(alert_type, matching_reqs[alert_type])
+            req_keys = matching_reqs[alert_type]["required_keys"]
+            if all([key in science_alert.unique_id for key in req_keys]):
+                matched_cfg_data_list.append(config_data)
+
+    return matched_cfg_data_list
 
 
 def parse_tasks(
@@ -56,6 +81,52 @@ def parse_post_actions(
         for pa in post_action_cfg
     ]
     return post_actions
+
+
+def execute_pipeline_from_cfg(
+    science_alert: ScienceAlert, site: CTANorth, pipeline_cfg: dict
+):
+    tasks = parse_tasks(
+        science_alert=science_alert,
+        site=site,
+        tasks_configuration_section=pipeline_cfg["tasks"],
+    )
+
+    post_actions = parse_post_actions(
+        science_alert=science_alert,
+        post_action_cfg=pipeline_cfg["post_action"],
+    )
+
+    use_result_from = pipeline_cfg["final_result_from"]
+
+    results = run_pipeline(
+        tasks=tasks,
+        return_result=use_result_from,
+        post_actions=post_actions,
+    )
+
+    try:
+        sb = results["CreateWobbleSchedulingBlock"]
+        assert isinstance(sb, SchedulingBlock)
+        obs = results["CreateObservationBlocks"]
+        for ob in obs:
+            assert isinstance(ob, ObservationBlock)
+
+        print("[bold blue]--- RESULTS ---")
+        print(f"[blue] got {type(sb).__name__}:")
+        print(sb.dict())
+        print(f"[blue] got {len(obs)} {type(obs[0]).__name__}s:")
+        for i, r in enumerate(obs):
+            assert isinstance(r, ObservationBlock)
+            print(f"[bold blue] {type(r).__name__} {i}:")
+            print(r.dict())
+
+    except Exception as e:
+        print("No valid results")
+        raise e
+
+    print("[bold blue]--------------")
+    return results
 
 
 def run_pipeline(

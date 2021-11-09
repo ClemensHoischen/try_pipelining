@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic.typing import NoneType, List
+from pydantic.typing import NoneType
 
 import yaml
 import pytest
@@ -12,12 +12,32 @@ from try_pipelining.data_models import (
     ScienceAlert,
     SchedulingBlock,
     ObservationBlock,
+    ParameterOptions,
+    ParameterFilterOptions,
 )
-from try_pipelining.pipelines import run_pipeline, parse_tasks, parse_post_actions
+from try_pipelining.pipelines import (
+    run_pipeline,
+    parse_tasks,
+    parse_post_actions,
+    match_science_configs,
+    execute_pipeline_from_cfg,
+)
 
-from try_pipelining.post_actions import (
-    Wobble,
-)
+from try_pipelining.tasks import Task
+
+from try_pipelining.post_actions import Wobble, PostAction
+
+
+alert_dict = {
+    "unique_id": "ivo://nasa.gcn.gov/SWIFT#BAT_GRB_Pos#1234567-1337",
+    "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
+    "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
+    "measured_parameters": {
+        "count_rate": 12300,
+        "system_stable": True,
+        "noise": 0.5,
+    },
+}
 
 
 @pytest.mark.parametrize(
@@ -28,6 +48,7 @@ def test_pipeline_from_yaml(
     noise_value: float, count_rate: float, system_stable: bool, tasks_pass: bool
 ):
     alert_dict = {
+        "unique_id": "ivo://nasa.gcn.gov/SWIFT#BAT_GRB_Pos#1234567-1337",
         "coords": {"raInDeg": 262.8109, "decInDeg": 14.6481},
         "alert_time": datetime(2021, 2, 10, 2, 00, 27, 91, tzinfo=pytz.utc),
         "measured_parameters": {
@@ -95,3 +116,80 @@ def test_wobble_validation():
 
     with pytest.raises(AttributeError):
         Wobble(offsets=[0.7, 0.7, 0.7], angles=[0, 90, 180, 270])
+
+
+def test_match_science_alert():
+    # Some kind of Mock of actual ScienceAlert using the above data as input.
+    science_alert = ScienceAlert(**alert_dict)
+
+    path_to_configs = "configs/"
+    applicable_configs = match_science_configs(science_alert, path_to_configs)
+    assert len(applicable_configs) == 1
+
+    matched_cfg = applicable_configs[0]
+    print(matched_cfg["pipeline"])
+
+
+def test_run_from_api():
+    sci_alert = ScienceAlert(**alert_dict)
+    site = CTANorth()
+    cfgs = match_science_configs(sci_alert, "configs")
+    for cfg in cfgs:
+        results = execute_pipeline_from_cfg(sci_alert, site, cfg["pipeline"])
+        print(results)
+
+
+def test_tasks_and_actions():
+    # Test usage with ill-defined task name and options
+    with pytest.raises(KeyError):
+        Task(
+            science_alert=ScienceAlert(**alert_dict),
+            site=CTANorth(),
+            task_name="a_task",
+            task_type="a_task",
+            task_options={"opt": 1},
+            filter_options={"filt": 2},
+        )
+    # test usage with ill-defined action type and options
+    with pytest.raises(KeyError):
+        PostAction(
+            science_alert=ScienceAlert(**alert_dict),
+            action_type="an_action",
+            action_options={"option": 1},
+        )
+
+    # test usage with non-matching task and options
+    with pytest.raises(AssertionError):
+        opts_dict = {
+            "parameter_name": "count_rate",
+            "parameter_requirement": 1.0e3,
+            "parameter_comparison": "greater",
+        }
+        par_opts = ParameterFilterOptions(**opts_dict)
+        Task(
+            science_alert=ScienceAlert(**alert_dict),
+            site=CTANorth(),
+            task_name="ObservationWindowTask",
+            task_type="ObservationWindowTask",
+            task_options=ParameterOptions(),
+            filter_options=par_opts,
+        )
+
+    # Test incomplete Task implementation
+    class NewTask(Task):
+        def new_run_method(self):
+            # say we implemented the logic in the wrong method.
+            pass
+
+    nt = NewTask(
+        science_alert=ScienceAlert(**alert_dict),
+        site=CTANorth(),
+        task_name="Parameter",
+        task_type="ParameterTask",
+        task_options=ParameterOptions(),
+        filter_options=ParameterFilterOptions(**opts_dict),
+    )
+    with pytest.raises(NotImplementedError):
+        nt.run()
+    with pytest.raises(NotImplementedError):
+        nt.filter(result={})

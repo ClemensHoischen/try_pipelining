@@ -34,6 +34,7 @@ class Coords(BaseModel):
 
 
 class ScienceAlert(BaseModel):
+    unique_id: str
     coords: Coords
     alert_time: datetime
     measured_parameters: dict

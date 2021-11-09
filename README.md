@@ -10,6 +10,7 @@ Currently this project is able to do:
 - perform a sequence of post-action steps (in this case : create an SB and from that create OBs).
 
 If all works out,this is what you will see:
+
 ![demo](https://drive.google.com/uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
 
 If some of the requirements specified in the configuration are not met, the output will look

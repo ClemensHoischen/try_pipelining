@@ -5,7 +5,7 @@ from itertools import cycle
 from typing import List, Any, Union
 from pydantic import BaseModel, Field, root_validator
 
-from astropy.coordinates import Angle, SkyCoord
+from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 from try_pipelining.data_models import (
@@ -129,8 +129,8 @@ class CreateObservationBlocks(PostAction):
         obs = []
         for i in range(n_blocks_max):
             coord_with_offset = base_target.directional_offset_by(
-                position_angle=next(cycle_wobble_angles),
-                separation=next(cycle_wobble_offset),
+                position_angle=next(cycle_wobble_angles) * u.deg,
+                separation=next(cycle_wobble_offset) * u.deg,
             )
             ra = coord_with_offset.ra / u.deg
             dec = coord_with_offset.dec / u.deg
