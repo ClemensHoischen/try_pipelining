@@ -80,7 +80,7 @@ def run_pipeline(
         filtered_results = t.filter(result=t.run())
 
         # --- Add to the Results Dict ---
-        task_results[t.task_name + "Result"] = filtered_results
+        task_results[t.task_name] = filtered_results
         tasks_passed.append(t.passed)
 
         rep_task = f"[bold green]PASS" if t.passed else f"[bold red]FAIL"
@@ -94,12 +94,20 @@ def run_pipeline(
         print("[bold red]Some Tasks failed.\n ... No result returned from Pipeline.")
         return
 
-    result = task_results[return_result + "Result"]
+    # The task result that is specified to be used further.
+    print(task_results)
+    result = task_results[return_result]
+    print(result)
+    # a dict of the post-action results for logging and reporting purposes.
+    post_action_results = {return_result: result}
     for post_action in track(
         post_actions,
         description="[bold blue]+Executing Post-action",
         total=len(post_actions),
     ):
+        # results are chained in order of post action specificiation in the configuration
         result = post_action.run(task_result=result)
+        post_action_results.update({post_action.action_type: result})
 
-    return result
+    print(post_action_results)
+    return post_action_results

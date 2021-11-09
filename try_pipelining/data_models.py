@@ -61,6 +61,13 @@ class SchedulingBlock(BaseModel):
     wobble_options: WobbleOptions
 
 
+class ObservationBlock(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    ra_target_deg: float = Field(..., ge=0, le=360)
+    dec_target_deg: float = Field(..., ge=0, le=360)
+
+
 # ---------------- Option Structs ---------------
 
 available_task_options = {}

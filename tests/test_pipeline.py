@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic.typing import NoneType
+from pydantic.typing import NoneType, List
 
 import yaml
 import pytest
@@ -11,6 +11,7 @@ from try_pipelining.data_models import (
     CTANorth,
     ScienceAlert,
     SchedulingBlock,
+    ObservationBlock,
 )
 from try_pipelining.pipelines import run_pipeline, parse_tasks, parse_post_actions
 
@@ -68,13 +69,25 @@ def test_pipeline_from_yaml(
     )
 
     if tasks_pass:
-        assert isinstance(result, SchedulingBlock)
-        print("[bold blue]--- RESULT ---")
-        print(f"[bold blue] {type(result).__name__}:")
-        print(result.dict())
-        print("[bold blue]--------------")
+        sb = result["CreateWobbleSchedulingBlock"]
+        assert isinstance(sb, SchedulingBlock)
+        obs = result["CreateObservationBlocks"]
+        for ob in obs:
+            assert isinstance(ob, ObservationBlock)
+
+        print("[bold blue]--- RESULTS ---")
+        print(f"[blue] got {type(sb).__name__}:")
+        print(sb)
+        print(f"[blue] got {len(obs)} {type(obs[0]).__name__}s:")
+        for i, r in enumerate(obs):
+            assert isinstance(r, ObservationBlock)
+            print(f"[bold blue] {type(r).__name__} {i}:")
+            print(r.dict())
+
     else:
         assert isinstance(result, NoneType)
+
+    print("[bold blue]--------------")
 
 
 def test_wobble_validation():

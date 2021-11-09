@@ -59,6 +59,8 @@ pipeline:
         parameter_comparison: less
   # specifies what will be done with the result
   # of the pipeline (if there is one that survives).
+  # post_actions are chained, so the result of
+  # action_1 will be the input for action_2.
   post_action:
     CreateWobbleSchedulingBlock:
       wobble:
@@ -68,3 +70,6 @@ pipeline:
         proposal_id: 1
         proposal_class: A
         proposal_rank: 15.2
+    CreateObservationBlocks:
+      min_block_duration_minutes: 10.0
+      max_block_duration_minutes: 30.0
