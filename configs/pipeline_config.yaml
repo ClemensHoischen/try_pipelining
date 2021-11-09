@@ -71,5 +71,5 @@ pipeline:
         proposal_class: A
         proposal_rank: 15.2
     CreateObservationBlocks:
-      min_block_duration_minutes: 10.0
+      min_block_duration_minutes: 15.0
       max_block_duration_minutes: 30.0

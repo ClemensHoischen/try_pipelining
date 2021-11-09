@@ -77,7 +77,7 @@ def test_pipeline_from_yaml(
 
         print("[bold blue]--- RESULTS ---")
         print(f"[blue] got {type(sb).__name__}:")
-        print(sb)
+        print(sb.dict())
         print(f"[blue] got {len(obs)} {type(obs[0]).__name__}s:")
         for i, r in enumerate(obs):
             assert isinstance(r, ObservationBlock)

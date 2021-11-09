@@ -7,7 +7,7 @@ Currently this project is able to do:
 
 - Read a pipeline configuration YAML file
 - Execute the specified tasks and filter the results according to the configuration
-- perform a post-action step
+- perform a sequence of post-action steps (in this case : create an SB and from that create OBs).
 
 ![image](https://drive.google.com//uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
 
@@ -19,12 +19,7 @@ This software uses:
 
 ## Plans Ideas and other stuff
 
-### Integration of Pipeline execution and Post-Action
-
-Currently the pipeline of tasks and the post-action are
-called independently of each other.
-
-### More Tasks
+### More Tasks and Post-Actions
 
 Only two actually useful tasks are implemented right now (`ObservationWindowTask` and `ParameterTask`). Many other Tasks will be needed:
 

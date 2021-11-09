@@ -95,9 +95,8 @@ def run_pipeline(
         return
 
     # The task result that is specified to be used further.
-    print(task_results)
     result = task_results[return_result]
-    print(result)
+
     # a dict of the post-action results for logging and reporting purposes.
     post_action_results = {return_result: result}
     for post_action in track(
@@ -109,5 +108,4 @@ def run_pipeline(
         result = post_action.run(task_result=result)
         post_action_results.update({post_action.action_type: result})
 
-    print(post_action_results)
     return post_action_results
