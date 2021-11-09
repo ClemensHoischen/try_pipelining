@@ -10,12 +10,12 @@ Currently this project is able to do:
 - perform a sequence of post-action steps (in this case : create an SB and from that create OBs).
 
 If all works out,this is what you will see:
-![image](https://drive.google.com//uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
+![demo](https://drive.google.com/uc?export=view&id=1VQqwRFlStjItjjocyjI-8x3a-jJBTwPP)
 
 If some of the requirements specified in the configuration are not met, the output will look
 something like this:
 
-![image](https://drive.google.com/file/d/1Pp3kz1bMIf0SDghg-EeTEl8KNbRvc_6W/view?usp=sharing)
+![demo_fail](https://drive.google.com/uc?export=view&id=1Pp3kz1bMIf0SDghg-EeTEl8KNbRvc_6W)
 
 This software uses:
 
